@@ -1,0 +1,6 @@
+node_modules/
+site_/
+.env
+certsFiles/
+tags
+
