@@ -3,4 +3,5 @@ site_/
 .env
 certsFiles/
 tags
+.eslintrc
 
