@@ -1,4 +1,4 @@
-// Script modified: Fri August 14, 2020 @ 03:08:53 EDT
+// Script modified: Fri August 14, 2020 @ 03:55:54 EDT
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -27,17 +27,11 @@ app.use(function(req, res, next) {
     next();
 });
 
-app.all('/', (req, res) => {
-    res.status(200).send('you did / ').end();
-});
+const eventGarage = require('./events/garage');
+const eventLocation = require('./events/location');
 
-app.all('/test', (req, res) => {
-    res.status(200).send('you did /test ').end();
-});
-
-app.all('test1', (req, res) => {
-    res.status(200).send('you did /test1 ').end();
-});
+app.use('/grg', eventGarage);
+app.use('/loc', eventLocation);
 
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
