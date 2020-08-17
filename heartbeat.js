@@ -1,4 +1,4 @@
-// Script modified: Mon August 17, 2020 @ 12:47:22 EDT
+// Script modified: Mon August 17, 2020 @ 02:01:56 EDT
 const fs = require('fs');
 const logger = require('./logger');
 //const path = require('path');
@@ -76,10 +76,7 @@ var deviceList = {
         side: new Device('garageSideDoor', { position: undefined })
     },
     location: {
-        emma:       new Device('locationEmma',      { location: undefined }),
-        jennifer:   new Device('locationJennifer',  { location: undefined }),
-        kyle:       new Device('locationKyle',      { location: undefined }),
-        scott:      new Device('locationScott',     { location: undefined })
+        life360: new Device('life360', { atHome: undefined, atShanty: undefined })
     }
 };
 
