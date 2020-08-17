@@ -1,13 +1,15 @@
-// Script modified: Fri August 14, 2020 @ 03:55:54 EDT
+// Script modified: Sun August 16, 2020 @ 07:18:29 EDT
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const heartbeat = ('./heartbeat');
 const http = require('http');
 const https = require('https');
 const httpPort = 3030;
 const httpsPort = 3031;
 const logger = require('./logger');
+const monitor = require('./monitor');
 require('dotenv/config');
 
 app.use(bodyParser.text());
@@ -28,10 +30,10 @@ app.use(function(req, res, next) {
 });
 
 const eventGarage = require('./events/garage');
-const eventLocation = require('./events/location');
+//const eventLocation = require('./events/location');
 
 app.use('/grg', eventGarage);
-app.use('/loc', eventLocation);
+//app.use('/loc', eventLocation);
 
 var httpServer = http.createServer(app);
 var httpsServer = https.createServer(credentials, app);
@@ -43,5 +45,4 @@ httpServer.listen(httpPort, () => {
 httpsServer.listen(httpsPort, () => {
     logger.info("Https server listening on port : " + httpsPort);
 });
-
 

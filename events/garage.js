@@ -1,10 +1,9 @@
-// Script modified: Fri August 14, 2020 @ 09:15:00 EDT
+// Script modified: Sun August 16, 2020 @ 06:42:04 EDT
 const express = require('express');
 const heartbeat = require('../heartbeat');
-const garage = hearbeat.deviceList.garage;
+const garage = heartbeat.devices.garage;
 const joi = require('@hapi/joi');
 const logger = require('../logger');
-const path = require('path');
 const router = express.Router();
 
 const doorEvent = joi.object({
@@ -17,19 +16,18 @@ const doorEvent = joi.object({
 });
 
 router.post('/:door/:position', async (req, res) => {
-    logger.debug("[harIOT/Garage] POST call to '/:door/:position' ");
+    logger.debug("[Event/Garage] POST call to '/:door/:position' ");
     try {
         const valid = await fileSchema.validateAsync(req.params);
-        logger.debug("[harIOT/Garage] Successfully validated parameters");
+        logger.debug("[Event/Garage] Successfully validated parameters");
         logger.debug(`> door: ${valid.door}`);
         logger.debug(`> position: ${valid.position}`);
         garage[valid.door].updateStatusKey('position', valid.position);
     } catch (err) {
         logger.error("[harIOT/Garage] Error:");
-        logger.error(`> error: ${error}`);
+        logger.error(`> ${err}`);
         throw new Error(err);
     }
-
-}})
+});
 
 module.exports = router;
