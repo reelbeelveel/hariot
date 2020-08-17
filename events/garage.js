@@ -1,4 +1,4 @@
-// Script modified: Mon August 17, 2020 @ 12:00:16 EDT
+// Script modified: Mon August 17, 2020 @ 12:03:56 EDT
 const express = require('express');
 const heartbeat = require('../heartbeat');
 const garage = heartbeat.devices.garage;
@@ -23,11 +23,15 @@ router.post('/:door/:position', async (req, res) => {
         logger.debug(`> door: ${valid.door}`);
         logger.debug(`> position: ${valid.position}`);
         garage[valid.door].updateStatusKey('position', valid.position);
+        res.status(200).send("Door position updated successfully").end();
+        logger.debug("[Event/Garage] Successfully updated door")
     } catch (err) {
         logger.error("[harIOT/Garage] Error:");
         logger.error(`> ${err}`);
-        throw new Error(err);
+        res.status(400).send(`Bad request: ${err}`);
     }
 });
+
+
 
 module.exports = router;
