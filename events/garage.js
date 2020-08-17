@@ -1,4 +1,4 @@
-// Script modified: Sun August 16, 2020 @ 06:42:04 EDT
+// Script modified: Mon August 17, 2020 @ 11:29:03 EDT
 const express = require('express');
 const heartbeat = require('../heartbeat');
 const garage = heartbeat.devices.garage;
@@ -18,16 +18,20 @@ const doorEvent = joi.object({
 router.post('/:door/:position', async (req, res) => {
     logger.debug("[Event/Garage] POST call to '/:door/:position' ");
     try {
-        const valid = await fileSchema.validateAsync(req.params);
+        const valid = await doorEvent.validateAsync(req.params);
         logger.debug("[Event/Garage] Successfully validated parameters");
         logger.debug(`> door: ${valid.door}`);
         logger.debug(`> position: ${valid.position}`);
         garage[valid.door].updateStatusKey('position', valid.position);
+        res.status(200).send("Door position updated successfully").end();
+        logger.debug("[Event/Garage] Successfully updated door")
     } catch (err) {
         logger.error("[harIOT/Garage] Error:");
         logger.error(`> ${err}`);
-        throw new Error(err);
+        res.status(400).send(`Bad request: ${err}`);
     }
 });
+
+
 
 module.exports = router;
