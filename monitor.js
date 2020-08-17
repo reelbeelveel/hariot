@@ -1,4 +1,4 @@
-// Script modified: Mon August 17, 2020 @ 11:30:40 EDT
+// Script modified: Mon August 17, 2020 @ 12:47:17 EDT
 const logger = require('./logger');
 
 function evaluate(process, condition, callback) {
@@ -30,7 +30,7 @@ class Process { //                     3,600,000ms = 1 hour
 
 var monitor = {
     attach: function(condition, cooldown, callback) {
-        new Process(condition, cooldown, callback);
+        return new Process(condition, cooldown, callback);
     },
 }
 
