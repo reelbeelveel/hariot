@@ -1,4 +1,4 @@
-// Script modified: Sun August 16, 2020 @ 06:42:04 EDT
+// Script modified: Mon August 17, 2020 @ 12:00:16 EDT
 const express = require('express');
 const heartbeat = require('../heartbeat');
 const garage = heartbeat.devices.garage;
@@ -18,7 +18,7 @@ const doorEvent = joi.object({
 router.post('/:door/:position', async (req, res) => {
     logger.debug("[Event/Garage] POST call to '/:door/:position' ");
     try {
-        const valid = await fileSchema.validateAsync(req.params);
+        const valid = await doorEvent.validateAsync(req.params);
         logger.debug("[Event/Garage] Successfully validated parameters");
         logger.debug(`> door: ${valid.door}`);
         logger.debug(`> position: ${valid.position}`);
