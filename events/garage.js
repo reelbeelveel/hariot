@@ -1,4 +1,4 @@
-// Script modified: Mon August 17, 2020 @ 12:03:56 EDT
+// Script modified: Sun August 23, 2020 @ 05:14:18 EDT
 const express = require('express');
 const heartbeat = require('../heartbeat');
 const garage = heartbeat.devices.garage;
@@ -8,10 +8,10 @@ const router = express.Router();
 
 const doorEvent = joi.object({
     door: joi.string()
-    .regex(/^(main|side)$/)
+    .regex(/^(Main Door|Side Door)$/)
     .required(),
     position: joi.string()
-    .regex(/^(up|down)$/)
+    .regex(/^(open|closed)$/)
     .required()
 });
 
@@ -20,9 +20,9 @@ router.post('/:door/:position', async (req, res) => {
     try {
         const valid = await doorEvent.validateAsync(req.params);
         logger.debug("[Event/Garage] Successfully validated parameters");
-        logger.debug(`> door: ${valid.door}`);
-        logger.debug(`> position: ${valid.position}`);
-        garage[valid.door].updateStatusKey('position', valid.position);
+        logger.debug(`> door: ${valid.door == 'Main Door' ? 'main' : 'side'}`);
+        logger.debug(`> position: ${valid.position == 'open' ? 'up' : 'down'}`);
+        garage[valid.door == 'Main Door' ? 'main' : 'side'].updateStatusKey('position', valid.position == 'open' ? 'up' : 'down');
         res.status(200).send("Door position updated successfully").end();
         logger.debug("[Event/Garage] Successfully updated door")
     } catch (err) {

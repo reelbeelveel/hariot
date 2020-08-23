@@ -1,4 +1,4 @@
-// Script modified: Sun August 23, 2020 @ 04:29:14 EDT
+// Script modified: Sun August 23, 2020 @ 05:52:32 EDT
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -51,12 +51,25 @@ function garageEvents() {
     var main = heartbeat.devices.garage.main;
     var side = heartbeat.devices.garage.side;
 
+    // force known state on init
+    var requests = [
+        {
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_maindown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        },{
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_sidedown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        }
+    ];
+
+    requests.forEach(req => { http.request(req, () => { logger.info("Forcing known state"); }).end() })
+
     const timing = {
-        lighton: (1000 * 60),
-        lightoff_inactive: (1000 * 60 * 15),
-        lightoff_cooldown: (1000 * 60 * 120),
-        doordown_inactive: (1000 * 60 * 180),
-        doordown_cooldown: (300),
+        lighton: (600),                             // Every 600ms, try to turn on lights if door open
+        lightoff_inactive: (1000 * 60 * 15),        // If doors closed for 15 minutes, turn off lights
+        lightoff_cooldown: (1000 * 60 * 60 * 2),    // Don't try to turn off the lights again for 2 hours
+        doordown_inactive: (1000 * 60 * 60 * 1.5),  // Close a garage door that hes been left open for 90 minutes
+        doordown_cooldown: (1000 * 60 * 5),         // Don't try to close door again for 5 minutes (wait for door to close)
     }
 
     // activate lights if doors are open
@@ -93,8 +106,8 @@ function garageEvents() {
             host: 'maker.ifttt.com',
             path: `/trigger/garage_maindown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
         };
-        http.request(options, () => { 
-            logger.info("Closed main door after three hours of inactivity.");
+        http.request(options, () => {
+            logger.info("Closed main door after 90 minutes of inactivity.");
             sms.send({ from: "harIOT Mailer <harIOTnotice@gmail.com>",
                 to: sms.recipient('all'),
                 subject: "IOT Event",
@@ -110,8 +123,8 @@ function garageEvents() {
             host: 'maker.ifttt.com',
             path: `/trigger/garage_sidedown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
         };
-        http.request(options, () => { 
-            logger.info("Closed side door after three hours of inactivity.");
+        http.request(options, () => {
+            logger.info("Closed side door after 90 of inactivity.");
             sms.send({ from: "harIOT Mailer <harIOTnotice@gmail.com>",
                 to: sms.recipient('all'),
                 subject: "IOT Event",
