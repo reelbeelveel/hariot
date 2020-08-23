@@ -1,4 +1,4 @@
-// Script modified: Mon August 17, 2020 @ 12:50:18 EDT
+// Script modified: Sun August 23, 2020 @ 04:29:14 EDT
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
@@ -50,30 +50,73 @@ httpsServer.listen(httpsPort, () => {
 function garageEvents() {
     var main = heartbeat.devices.garage.main;
     var side = heartbeat.devices.garage.side;
-monitor.attach(() => {
-    return (main.statusOfKey('position') == 'up' || side.statusOfKey('position') == 'up')
-}, (1000 * 60), () => {
-    var options = {
-        host: 'maker.ifttt.com',
-        path: `/trigger/garage_lighton/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
-    };
-    http.request(options, () => { logger.info("Successfully activated garage lights.") }).end();
-});
 
-// if both doors are closed, wait 15 and shut off garage lights. Longer cooldown gives 2 hours to work in garage with lights on.
-monitor.attach(() => {
-    return (
-    main.statusOfKey('position') == 'down' &&
-    side.statusOfKey('position') == 'down' &&
-    Math.max(main.time, side.time) <= Date.now() - (1000 * 60 * 15));
-}, (1000 * 60 * 120), () => {
-    var options = {
-        host: 'maker.ifttt.com',
-        path: `/trigger/garage_lightoff/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
-    };
-    http.request(options, () => { logger.info("Successfully disabled garage lights.") }).end();
-    
-});
+    const timing = {
+        lighton: (1000 * 60),
+        lightoff_inactive: (1000 * 60 * 15),
+        lightoff_cooldown: (1000 * 60 * 120),
+        doordown_inactive: (1000 * 60 * 180),
+        doordown_cooldown: (300),
+    }
+
+    // activate lights if doors are open
+    monitor.attach(() => {
+        return (main.statusOfKey('position') == 'up' || side.statusOfKey('position') == 'up')
+    }, (timing.lighton), () => {
+        var options = {
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_lighton/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        };
+        http.request(options, () => { logger.info("Successfully activated garage lights.") }).end();
+    });
+
+    // if both doors are closed, wait 15 and shut off garage lights. Longer cooldown gives 2 hours to work in garage with lights on.
+    monitor.attach(() => {
+        return (
+            main.statusOfKey('position') == 'down' &&
+            side.statusOfKey('position') == 'down' &&
+            Math.max(main.time, side.time) <= Date.now() - (timing.lightoff_inactive));
+    }, (timing.lightoff_cooldown), () => {
+        var options = {
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_lightoff/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        };
+        http.request(options, () => { logger.info("Successfully disabled garage lights.") }).end();
+    });
+
+    monitor.attach(() => {
+        return (
+            main.statusOfKey('position') == 'up' &&
+            main.time  <= Date.now() - (timing.doordown_inactive));
+    }, (timing.doordown_cooldown), () => {
+        var options = {
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_maindown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        };
+        http.request(options, () => { 
+            logger.info("Closed main door after three hours of inactivity.");
+            sms.send({ from: "harIOT Mailer <harIOTnotice@gmail.com>",
+                to: sms.recipient('all'),
+                subject: "IOT Event",
+                text: "The main garage door has been left open for some time. I've closed it for you." })}).end();
+    });
+
+    monitor.attach(() => {
+        return (
+            side.statusOfKey('position') == 'up' &&
+            main.time <= Date.now() - (timing.doordown_inactive));
+    }, (timing.doordown_cooldown), () => {
+        var options = {
+            host: 'maker.ifttt.com',
+            path: `/trigger/garage_sidedown/with/key/${process.env.IFTTT_WEBHOOK_KEY}`
+        };
+        http.request(options, () => { 
+            logger.info("Closed side door after three hours of inactivity.");
+            sms.send({ from: "harIOT Mailer <harIOTnotice@gmail.com>",
+                to: sms.recipient('all'),
+                subject: "IOT Event",
+                text: "The side garage door has been left open for some time. I've closed it for you." })}).end();
+    });
 }
 
 garageEvents();

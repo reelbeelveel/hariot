@@ -1,4 +1,4 @@
-// Script modified: Sun August 16, 2020 @ 03:25:55 EDT
+// Script modified: Sun August 23, 2020 @ 04:29:14 EDT
 const logger = require('./logger');
 var mailer = require("nodemailer");
 require('dotenv/config');
@@ -45,6 +45,7 @@ var sms = {
             case 'jen':
             mailList =
                 `${process.env.PHONE_NUM_J}@vtext.com`;
+                break;
             case 'kyle':
             mailList =
                 `${process.env.PHONE_NUM_K}@vtext.com`;
